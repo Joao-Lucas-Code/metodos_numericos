@@ -1,23 +1,29 @@
 # 📘 Guia de Apresentação - Métodos Numéricos
 **Professor:** Marco Montebello
-**Equipe:** João Lucas (Joli) e Grupo
+**Equipe:** Eduardo Spoletto, Gustavo Valim, Gustavo Freire, João Lucas
 
-Este documento contém o resumo lógico e as prováveis perguntas para a Verificação de Conhecimento dos algoritmos de Dicotomia e Interpolação de Lagrange.
+Este documento contém o resumo lógico apontando para as linhas de código e as prováveis perguntas para a Verificação de Conhecimento dos algoritmos de Dicotomia e Interpolação de Lagrange.
 
 ---
 
 ## 🟢 PARTE 1: Método da Dicotomia (Bissecção)
 
 ### 📝 Resumo do Código (Passo a Passo)
-1. **Alocação Dinâmica:** Recebemos o grau do polinômio (entre 2 e 6) e usamos `malloc` para criar o ponteiro `multi`, que armazena os coeficientes da equação sem desperdiçar memória.
-2. **Entrada de Dados:** Recebemos os limites do intervalo inicial `[a, b]` e o `erro` (precisão) desejado.
-3. **Análise Teórica:** Chamamos a `funcaoX` para $a$ e $b$. Se $f(a) * f(b) \ge 0$, o programa avisa que não há garantia de raiz e para por ali.
-4. **Cálculo de K:** Se a raiz existir, calculamos o número máximo de iterações $K$ chamando a função `CalculaValorK`.
-5. **O Laço Iterativo (A Bissecção):** Entramos num loop infinito `while (1)` onde:
-   - Calculamos o ponto médio: $m = \frac{a+b}{2}$.
-   - Imprimimos a linha da tabela com os sinais de $f(a)*f(m)$ e $f(m)*f(b)$.
-   - Verificamos os **Critérios de Parada**: se a iteração atingiu $K$, se o tamanho do intervalo $|b-a|$ é menor que o erro, ou se $|f(m)|$ é menor que o erro, usamos o `break` para sair do laço.
-   - **Atualização do Intervalo:** Se $f(a) * f(m) < 0$, o novo limite superior $b$ recebe $m$. Caso contrário, o limite inferior $a$ recebe $m$.
+
+1. **Alocação Dinâmica:** Recebemos o grau do polinômio e usamos `malloc` para criar o ponteiro `multi`.
+   * **No código:** `multi = (float *)malloc((grau + 1) * sizeof(float));`
+2. **Entrada de Dados:** Recebemos os limites do intervalo inicial e a precisão (erro).
+   * **No código:** `scanf("%f", &a);`, `scanf("%f", &b);` e `scanf("%f", &erro);`
+3. **Análise Teórica:** Testamos se as extremidades do intervalo têm sinais opostos. Se a multiplicação for positiva ou zero, o cálculo é abortado.
+   * **No código:** `if (fA * fB >= 0) { printf("...A dicotomia nao e valida..."); }`
+4. **Cálculo de K:** Se a raiz existir, calculamos o número máximo de iterações.
+   * **No código:** `K = (int)CalculaValorK(a, b, erro);`
+5. **O Laço Iterativo (A Bissecção):** Entramos no loop de cálculo `while (1)`:
+   * **Ponto Médio:** Calculado no início do laço: `m = (a + b) / 2.0;`
+   * **Critérios de Parada:** O loop quebra (`break`) se atingir $K$, se o intervalo for menor que o erro, ou se $f(m)$ for menor que o erro.
+     * **No código:** `if (I >= K || fabs(b - a) <= erro || fabs(fM) <= erro) { break; }`
+   * **Atualização do Intervalo:** Verifica de qual lado ocorreu a troca de sinal para substituir $a$ ou $b$ pelo $m$.
+     * **No código:** `if (fA * fM < 0) { b = m; } else { a = m; }`
 
 ### ❓ Prováveis Perguntas do Professor & Respostas
 
@@ -42,14 +48,20 @@ Este documento contém o resumo lógico e as prováveis perguntas para a Verific
 ## 🔵 PARTE 2: Interpolação Polinomial de Lagrange
 
 ### 📝 Resumo do Código (Passo a Passo)
-1. **Definição de Pontos e Alocação:** Recebemos o grau do polinômio e definimos a quantidade de pontos como `grau + 1`. Usamos `malloc` para alocar dinamicamente dois vetores (ponteiros): `valoresX` e `valoresFX`.
-2. **Entrada de Dados:** A função `ReceberPontos` é chamada (passando os ponteiros por referência) para ler cada par de $x$ e $f(x)$ tabelado que o usuário digitar.
-3. **Loop de Interpolação:** Entramos em um `do...while` que permite ao usuário calcular quantos valores de $X$ ele quiser sem fechar o programa.
-4. **Cálculo de Lagrange:** A mágica acontece na função `CalculaLagrange`, que possui dois laços `for` aninhados:
-   - O laço externo (índice $i$) percorre os pontos para somar o resultado final do polinômio $P(x)$.
-   - O laço interno (índice $j$) calcula os produtórios para encontrar o $L_i(x)$, garantindo que $i \neq j$ para evitar divisão por zero.
-   - O valor de cada $L_i$ calculado é impresso na tela a cada passagem do laço externo.
-5. **Liberação de Memória:** Ao final (quando o usuário digita 'n'), usamos `free` para liberar a memória de `valoresX` e `valoresFX`.
+
+1. **Definição de Pontos e Alocação:** Com base no grau, definimos a quantidade de pontos (`grau + 1`) e alocamos memória para as "colunas" X e Y da tabela.
+   * **No código:** `valoresX = (float *)malloc(pontos * sizeof(float));` e `valoresFX = (float *)malloc(pontos * sizeof(float));`
+2. **Entrada de Dados:** Chamamos a função passando os ponteiros por referência para o usuário preencher a tabela.
+   * **No código:** `ReceberPontos(pontos, valoresX, valoresFX);`
+3. **Loop de Múltiplas Interpolações:** Mantemos o programa rodando para o usuário testar quantos valores de $X$ quiser.
+   * **No código:** `do { ... } while (resp == 's' || resp == 'S');`
+4. **Cálculo de Lagrange:** Dentro da função `CalculaLagrange`, temos os dois laços de repetição:
+   * **Produtório ($L_i$):** O laço `for` interno ignora quando $i = j$ para não dar divisão por zero e multiplica os termos.
+     * **No código:** `if(i != j) { Li = Li * ((valorCalcular - *(valoresX + j)) / (*(valoresX + i) - *(valoresX + j))); }`
+   * **Somatório Final ($Px$):** O laço `for` externo pega o $L_i$ calculado e multiplica pelo $f(X_i)$ correspondente, somando ao total.
+     * **No código:** `Px = Px + (Li * *(valoresFX + i));`
+5. **Liberação de Memória:** Liberamos a memória alocada no final do programa.
+   * **No código:** `free(valoresX); free(valoresFX);`
 
 ### ❓ Prováveis Perguntas do Professor & Respostas
 
