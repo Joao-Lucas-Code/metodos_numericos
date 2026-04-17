@@ -1,9 +1,9 @@
 /*
-Alunos e RA: Eduardo Furlanetto|252210 , Gustavo Freire|251524, Gustavo Valim|250777 ,João Lucas|252192
+Alunos e RA: Eduardo Furlanetto|252210 , Gustavo Freire|251524, Gustavo Valim|250777 , João Lucas|252192
 Turma: CP004TIN1
 Disciplina: Métodos Numéricos
 Professor: Marco Montebello
-Descrição: Programa que descobre os zeros de equações através do Método da Dicotomia ou Bissecção.
+Descrição: Interpolação Polinomial pela Forma de Lagrange.
 */
 
 #include <stdio.h>
