@@ -5,6 +5,7 @@ Disciplina: Métodos Numéricos
 Professor: Marco Montebello
 Descrição: Interpolação Polinomial pela Forma de Lagrange.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
