@@ -2,7 +2,7 @@
 **Professor:** Marco Montebello
 **Equipe:** Eduardo Spoletto, Gustavo Valim, Gustavo Freire, João Lucas
 
-Este documento contém o resumo lógico apontando para as linhas de código e as prováveis perguntas para a Verificação de Conhecimento dos algoritmos de Dicotomia e Interpolação de Lagrange.
+Este documento contém o resumo lógico apontando para as linhas de código e as prováveis perguntas para a Verificação de Conhecimento dos algoritmos de Dicotomia, Interpolação de Lagrange, Mínimos Quadrados e Eliminação de Gauss.
 
 ---
 
@@ -28,7 +28,7 @@ Este documento contém o resumo lógico apontando para as linhas de código e as
 ### ❓ Prováveis Perguntas do Professor & Respostas
 
 **Q1: Como funciona o Método da Dicotomia na teoria?**
-> **Resposta:** O método encontra raízes em um intervalo fechado cortando-o pela metade repetidas vezes. Primeiro, garantimos que há uma troca de sinal ($f(a)*f(b) < 0$). Depois, calculamos o ponto médio $m$. Analisamos em qual das metades a troca de sinal se manteve ($f(a)*f(m) < 0$, por exemplo) e descartamos a outra metade, repetindo o processo até o intervalo ficar menor que o erro exigido.
+> **Resposta:** O método encontra raíces em um intervalo fechado cortando-o pela metade repetidas vezes. Primeiro, garantimos que há uma troca de sinal ($f(a)*f(b) < 0$). Depois, calculamos o ponto médio $m$. Analisamos em qual das metades a troca de sinal se manteve ($f(a)*f(m) < 0$, por exemplo) e descartamos a outra metade, repetindo o processo até o intervalo ficar menor que o erro exigido.
 
 **Q2: Onde vocês fizeram a Análise Teórica no código?**
 > **Resposta:** Está na função `main`, na linha do `if (fA * fB >= 0)`. Calculamos a função nas extremidades antes de começar a tabela. Se a multiplicação não for negativa, avisamos o usuário que o intervalo não é válido e o cálculo nem começa.
@@ -76,3 +76,38 @@ Este documento contém o resumo lógico apontando para as linhas de código e as
 
 **Q4: O PDF pede que o programa não use variáveis globais e use ponteiros. Como vocês trataram isso?**
 > **Resposta:** Todos os arrays de coeficientes e pontos (`valoresX`, `valoresFX`) foram declarados como ponteiros nulos dentro da `main` e receberam o tamanho exato da memória através da função `malloc()`. Na hora de fazer os cálculos, nós passamos esses ponteiros como parâmetros para as funções `ReceberPontos` e `CalculaLagrange`, operando a memória de forma segura e local.
+
+---
+
+<br>
+
+---
+
+## 🟡 PARTE 3: Ajuste de Curvas - Método dos Mínimos Quadrados (MMQ) e Eliminação de Gauss
+
+### 📝 Resumo do Código (Passo a Passo)
+
+1. **Entrada de Dados e Struct:** Recebemos o número de pontos `m` e o grau `n` (1 a 5) do polinômio, realizando a alocação dinâmica do vetor baseado no tipo `Ponto`.
+   * **No código:** `*pontos = (Ponto *)malloc((*m) * sizeof(Ponto));`
+2. **Montagem do Sistema Linear (MMQ):** Criamos a estrutura da matriz aumentada de ordem $(n+1) \times (n+2)$ dinamicamente e preenchemos as posições calculando as somatórias de $x_k^{i+j}$ para a matriz de coeficientes $A$ e $y_k \cdot x_k^i$ para o vetor de termos independentes $b$.
+   * **No código:** `(*matriz)[i][j] = somaA;` e `(*matriz)[i][ordem] = somaB;`
+3. **Eliminação Progressiva de Gauss:** Realizamos o escalonamento transformando o sistema original em uma matriz triangular superior através do cálculo do multiplicador e da atualização das linhas abaixo do pivô.
+   * **No código:** `float m_ik = matriz[i][k] / matriz[k][k];` e `matriz[i][j] = matriz[i][j] - (m_ik * matriz[k][j]);`
+4. **Substituição Retroativa:** Resolvemos a matriz triangular de trás para frente para obter individualmente cada coeficiente $a_i$ isolado.
+   * **No código:** `(*coeficientes)[i] = (matriz[i][ordem] - soma) / matriz[i][i];`
+5. **Resultado e Desalocação:** Exibimos a expressão final estruturada de $p(x)$ e limpamos toda a memória alocada dinamicamente de ponteiros e matrizes bidimensionais.
+   * **No código:** `free(pontos); free(coeficientes); LiberarMatriz(ordemSistema, matriz);`
+
+### ❓ Prováveis Perguntas do Professor & Respostas
+
+**Q1: Qual é o objetivo principal do Método dos Mínimos Quadrados (MMQ)?**
+> **Resposta:** O objetivo do MMQ é encontrar um polinômio $p(x)$ de grau $n$ que melhor se ajuste a um conjunto de dados experimentais tabelados. Em vez de passar obrigatoriamente por cima de todos os pontos (como na interpolação), o MMQ minimiza a soma dos quadrados dos desvios (erros residuais) entre os pontos reais da tabela e a curva gerada pelo polinômio ajustado.
+
+**Q2: Como foi estruturada e exibida a Matriz Aumentada do sistema obtido pelo MMQ?**
+> **Resposta:** A matriz aumentada foi alocada na função `MontarSistemaMMQ` com tamanho de linhas igual a `ordem = n + 1` e colunas igual a `ordem + 1`. A parte esquerda armazena as somatórias das potências da base $x$, enquanto a última coluna armazena o produto $y \cdot x^i$. O sistema linear montado é impresso na tela utilizando formatação organizada de colunas na função `ImprimirMatriz` antes de iniciar o escalonamento.
+
+**Q3: Onde e como o código garante a exibição da matriz a cada passo $k$ do processo de eliminação?**
+> **Resposta:** Dentro da função `EliminacaoGauss`, o laço principal percorre cada coluna $k$ efetuando os cálculos dos multiplicadores e a alteração das linhas inferiores. No final de cada ciclo desse laço externo, a função `ImprimirMatriz` é chamada enviando uma mensagem personalizada com o passo atual (`sprintf(msg, "Matriz apos o passo k = %i", k);`), atendendo exatamente ao requisito de rastreabilidade do algoritmo exigido no PDF.
+
+**Q4: Como o algoritmo implementado lida com a escolha do pivô se ele for nulo ($A_{kk} == 0$)?**
+> **Resposta:** Logo no início do laço de cada coluna $k$ na função `EliminacaoGauss`, adicionamos uma estrutura condicional `if (matriz[k][k] == 0)`. Caso o pivô seja zero, o programa executa uma busca varrendo as linhas logo abaixo (`k + 1`) até encontrar um elemento que não seja zero. Ao achar, o algoritmo permuta (troca) os ponteiros das duas linhas inteiras, restabelecendo um pivô válido e prosseguindo sem erros de divisão por zero.
